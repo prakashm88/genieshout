@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   show="canvas1_showHandler(event)"
+		   initialize="canvas1_initializeHandler()"
+		   height="100%"
+		   width="100%" xmlns:chat="com.itechgenie.chat.*"
+		   >
+	<fx:Declarations>
+		<mx:HTTPService id="chatUpdater" method="GET" resultFormat="text"
+						url="http://172.24.30.158/air/updateChat.php" />
+	</fx:Declarations>
+	
+	<fx:Script>
+			<![CDATA[
+				import flash.events.KeyboardEvent;
+				
+				import mx.controls.Image;
+				import mx.core.mx_internal;
+				import mx.events.ColorPickerEvent;
+			use namespace mx_internal;
+			public var smiles:XML;
+			
+			public function init():void
+			{
+			//we want the textArea control to grow in height with its content
+			textArea.height = textArea.textHeight + 10;
+			
+			textInput.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
+			textInput.setFocus();
+			
+			//we&apos;ll define smileys here, though these can be read in from xml file
+			smiles = <smiles>
+			<smile file="angry.gif" code=":{" width="20" height="20" />
+			<smile file="smile.gif" code=":)" width="20" height="20" />
+			<smile file="smile.gif" code=":-)" width="20" height="20" />
+			<smile file="biggrin.gif" code=":D" width="20" height="20" />
+			<smile file="ohmy.gif" code=":O" width="20" height="20" />
+			<smile file="sad.gif" code=":(" width="20" height="20" />
+			<smile file="sad.gif" code=":-(" width="20" height="20" />
+			<smile file="tongue.gif" code=":p" width="20" height="20" />
+			<smile file="wink.gif" code=";)" width="20" height="20" />
+			</smiles>;
+			
+			//set some initial text
+			textInput.htmlText="Smileys example.&#xa;Available smileys: :{,:),:D,:O,:(,;),:p.";
+			
+			//run the smileyHandler routine right at the start
+			smileyHandler();
+			}
+			
+			private function keyDown(event:KeyboardEvent):void
+			{
+			// Check to see if ENTER pressed.
+			if (event.keyCode == Keyboard.ENTER)
+			{
+			smileyHandler();
+			}
+			}
+			
+			public function smileyHandler():void
+			{
+				Alert.show("inside smiley handler:" );
+			var smileyIndex:int = -1;
+			var searchIndex:int = -1;
+			var testSearchIndex:int = -1;
+			var testString:String;
+			var searchString:String = textInput.htmlText;
+			
+			//recurse through all smileys to see if they occur in searchString
+			for (var x:int = 0; x < smiles.child("*").length(); x++)
+			{
+			//setup testString by escaping various punctuation marks before search
+			testString = smiles.smile[x].attribute("code").toString().replace(/(\)|\()/, "\\$&");
+			searchIndex = searchString.search(testString);
+			if (searchIndex >= 0)
+			{
+			//occurrence of this smiley found. test for previous occurence
+			//and see if it&apos;s earlier in the text than this occurence
+			if (testSearchIndex < 0)
+			{
+			//no previous smiley found, this is the first
+			testSearchIndex = searchIndex;
+			smileyIndex = x;
+			}
+			else
+			{
+			//previous smiley found. test if this occurrence is earlier
+			//in text than previous occurence
+			if (testSearchIndex > searchIndex)
+			{
+			testSearchIndex = searchIndex;
+			smileyIndex = x;
+			}
+			}
+			}
+			}
+			searchIndex = testSearchIndex;
+			var newText:String = "";
+			var oldText:String = textArea.htmlText;
+			//if no smiley found, add textInput to textArea
+			if (searchIndex < 0)
+			{
+			newText = textInput.htmlText;
+			}
+			
+			//recurse until no smileys found in searchString
+			while (searchIndex >= 0)
+			{
+			//set replacement string as text smiley with background color so that it&apos;s semi-invisible
+			
+			var smileyReplaceString:String = '<FONT COLOR="#'
+			smileyReplaceString += chatCanvas.getStyle("backgroundColor").toString(16);
+			smileyReplaceString += '"> ';
+			smileyReplaceString += smiles.smile[smileyIndex].attribute("code");
+			smileyReplaceString += '  </FONT>';			
+
+			
+			//slice searchString at index where smiley occurs and put that in textArea for operation
+			//notice: +1 is added to searchIndex here to compensate for smiley at index 0
+			textArea.htmlText = oldText + newText + searchString.slice(0, searchIndex + 1);
+			
+			textArea.validateNow();
+			
+			//get necessary coordinates and display smiley
+			var numLines:int = textArea.mx_internal::getTextField().numLines;
+			var smiley:Image = new Image();
+			smiley.source = "assets/" + smiles.smile[smileyIndex].attribute("file");
+			smiley.x = textArea.getLineMetrics(numLines - 1).width;
+			smiley.y = textArea.textHeight - textArea.getLineMetrics(numLines - 1).height;
+			chatCanvas.addChild(smiley);
+			
+			newText += searchString.slice(0, searchIndex) + smileyReplaceString;
+			var codeLength:int = smiles.smile[smileyIndex].attribute("code").toString().length;
+			searchString = searchString.slice(searchIndex + codeLength);
+			
+			//begin with smiley search again
+			searchIndex = -1;
+			testSearchIndex = -1;
+			smileyIndex = -1;
+			for (x = 0; x < smiles.child("*").length(); x++)
+			{
+			//setup testString by escaping various punctuation marks before search
+			testString = smiles.smile[x].attribute("code").toString().replace(/(\)|\()/, "\\$&");
+			searchIndex = searchString.search(testString);
+			if (searchIndex >= 0)
+			{
+			//occurrence of this smiley found. test for previous occurence
+			//and see if it&apos;s earlier in the text than this occurence
+			if (testSearchIndex < 0)
+			{
+			//no previous smiley found, this is the first
+			testSearchIndex = searchIndex;
+			smileyIndex = x;
+			}
+			else
+			{
+			//previous smiley found. test if this occurrence is earlier
+			//in text than previous occurence
+			if (testSearchIndex > searchIndex)
+			{
+			testSearchIndex = searchIndex;
+			smileyIndex = x;
+			}
+			}
+			}
+			}
+			searchIndex = testSearchIndex;
+			if (searchIndex < 0)
+			{
+			newText += searchString;
+			}
+			}
+			textArea.htmlText = oldText + newText;
+			textArea.validateNow();
+			
+			//set height of textArea to height of new text content
+			textArea.height = textArea.textHeight + 10;
+			
+			//clear textInput
+			textInput.htmlText = "";
+			
+			//scroll to bottom of canvas
+			chatCanvas.validateNow();
+			chatCanvas.verticalScrollPosition = chatCanvas.maxVerticalScrollPosition;
+			}
+			
+				import flash.net.navigateToURL;
+				import flash.utils.clearInterval;
+				
+				import mx.collections.XMLListCollection;
+				import mx.controls.Alert;
+				import mx.controls.Label;
+				import mx.controls.Text;
+				import mx.events.ColorPickerEvent;
+				import mx.events.FlexEvent;
+				private var myLoader:URLLoader;
+				public var userName:String ;
+				[Bindable]
+				public var groupName:String;
+				[Bindable]
+				private var myContactsCol:XMLListCollection;
+				private var myXml:XML;
+				public var interval:uint ;
+				[Bindable]
+				public var msgCounter:int; 
+				private var alrtTimer:Timer;
+				
+				private function popUpShout():void
+				{
+					stage.nativeWindow.notifyUser("New Message obtained");
+					if(!stage.nativeWindow.visible){				
+						parentApplication.unDock(null);	
+						stage.nativeWindow.orderToBack();
+					}
+				}
+				
+				protected function canvas1_initializeHandler():void
+				{
+					if(groupName==null)
+					{
+						groupName = parentApplication.groupNameValue ;
+					}
+					//	Alert.show("hi");
+					refreshData();
+					interval= setInterval(refreshData, 5000); 		
+					//	chatTextArea.addEventListener(KeyboardEvent.KEY_DOWN, button1_clickHandler);
+					
+				}
+				
+				private function dataComplete(e:Event):void
+				{
+					trace("XML content: " +myLoader.data.toString());				
+					myXml = new XML(myLoader.data.toString());
+					var count:int = 0;
+					if(myContactsCol != null )
+					{
+						count = myContactsCol.length ;
+					}								
+					myContactsCol = new XMLListCollection(myXml..chatDetail);		
+					trace("Text: " + myXml.toString()) ;
+					
+					if(count != myContactsCol.length)				
+						popUpShout();
+				}
+				
+				protected function button1_clickHandler(event:Event):void
+				{
+					var chatText:String = textInput.htmlText ;
+					
+					if(chatText != "")
+					{
+						var date:Date = new Date();
+						var timestamp:String = date.toString();
+						
+						if(myContactsCol == null )
+						{
+							myContactsCol = new XMLListCollection();
+						}
+						myContactsCol.addItem(new XML('<chatDetail>' +
+							'<name>'+userName+'</name>' +
+							'<chattext>'+chatText+'</chattext>' +
+							'<time>'+timestamp+'</time>' +
+							'<flag>0</flag>' +
+							'</chatDetail>'));
+						trace("Text: " + myContactsCol.toString()) ;
+						
+						var params:Object = new Object();
+						params.userName = userName;
+						params.message = chatText;
+						params.timestamp = timestamp ;
+						params.groupName = groupName ;
+						chatUpdater.send(params);
+						textInput.text="";
+						
+					}
+					textInput.setFocus() ;
+				}
+				
+				protected function refreshData():void
+				{
+					//	Alert.show("hi2" + groupName); 
+					trace("groupName: " + groupName) ;		
+					var myReq:URLRequest = new URLRequest('http://172.24.30.158/air/getChat.php?gpn=' + groupName + '&cnt=' + msgCounter);
+					myLoader = new URLLoader();
+					myLoader.addEventListener(Event.COMPLETE, dataComplete);				
+					myLoader.load(myReq);	
+					trace(myLoader);		
+				}
+				
+				protected function myDg_updateCompleteHandler(event:FlexEvent):void
+				{
+					/* var currLen:uint = myDg.dataProvider.length;
+					trace(currLen)  ;
+					myDg.scrollToIndex(currLen);	 */			
+				}
+				
+				protected function canvas1_showHandler(event:FlexEvent):void
+				{
+					//	Alert.show("show handler");
+					refreshData();
+					interval = setInterval(refreshData, 5000); 
+				}
+				
+				
+				protected function button2_clickHandler(event:Event):void
+				{
+					clearInterval(interval);
+					parentApplication.screenStack.selectedIndex = 0;
+				}
+				
+				
+				protected function button1_keyDownHandler(event:KeyboardEvent):void
+				{				
+					if(event.keyCode==Keyboard.ENTER)
+					{
+						button1_clickHandler(event);
+					}
+				}
+				
+				protected function button2_keyDownHandler(event:KeyboardEvent):void
+				{
+					if(event.keyCode==Keyboard.ENTER)
+					{
+						button2_clickHandler(event);
+					}
+				}
+				
+				
+				protected function chatTextColorPicker_changeHandler(event:ColorPickerEvent):void
+				{
+					Alert.show("chatTextColorPicker.colorField: " + chatTextColorPicker.selectedColor );
+					
+					var color:String = chatTextColorPicker.selectedColor.toString(16);  
+					
+					if (color.length < 6){ 
+						var colorLength:int = 6-color.length;  
+						var temp_color:String = '';  
+						for (var i:int=0; i<colorLength; i++){  
+							temp_color += '0';  
+						}  
+						temp_color += color;  
+						color = temp_color  
+					} 
+					textInput.setStyle("color", "#"+color );
+				}
+		]]>
+
+	</fx:Script>
+	
+	<mx:VBox x="0" y="0" width="100%" height="100%">
+		<mx:Canvas id="chatCanvas" width="100%" height="90%" horizontalScrollPolicy="off"
+				   backgroundColor="#FFFFFF" borderStyle="solid">
+			<mx:TextArea width="100%" id="textArea" editable="false"
+						 fontSize="12" verticalScrollPolicy="off" borderStyle="none">
+			</mx:TextArea>
+		</mx:Canvas>	
+		
+		<mx:HBox width="100%" height="100%" horizontalAlign="center">	
+			<mx:TextArea width="75%" height="85" id="textInput" />	
+			
+			<mx:VBox width="24%" >
+				<s:Button label="Send" height="55" width="100%"  />				
+				<mx:HBox width="100%">			
+					<mx:ColorPicker id="chatTextColorPicker" change="chatTextColorPicker_changeHandler(event)" />
+					<s:Button label="Leave Chat" height="23" width="80%" />
+				</mx:HBox>
+			</mx:VBox>		
+			
+		</mx:HBox>
+		
+	</mx:VBox>
+
+	
+</mx:Canvas>

@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   width="550" height="350"
+					   initialize="init()"
+					   xmlns:chat="com.itechgenie.chat.*" 
+					   creationComplete="windowedapplication1_creationCompleteHandler(event)"
+					   >
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Style source="/assets/css/genieshout.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			
+			import spark.events.IndexChangeEvent;
+
+			
+			[Bindable]
+			public var groupName:ArrayCollection;
+			
+			[Bindable]
+			private var ipAddress:String ;
+			
+			[Bindable]
+			public var showUser:Boolean = false ;
+			
+			[Bindable]
+			public var groupNameValue:String ;
+			
+			protected function button1_clickHandler(event:Event):void
+			{				
+				if(userName.text != "" )
+				{
+					if(groupCombo.selectedIndex != 0)
+					{
+						trace(groupCombo.selectedItem) ;
+						trace(userName.text );
+						screenStack.selectedIndex=1;
+					}
+					else
+					{
+						Alert.show("Select Group Name.");
+					}
+				}
+				else
+				{
+					Alert.show("Enter User Name.");
+				}
+			}
+			public function init():void
+			{			
+				groupName = new ArrayCollection(
+					[  "Select",
+						"Kumaran", 
+						"SSRD", 
+					"SGPN", 
+						"SPNX", 
+						"SSNT"
+					]);	
+				
+				var netInterfaces = NetworkInfo.networkInfo.findInterfaces();			
+				var addresses = netInterfaces[0].addresses;				
+				ipAddress = addresses[0].address;				
+				trace(ipAddress);				
+				groupNameValue = "Kumaran" ;					
+			}
+			
+
+			protected function groupCombo_changeHandler(event:IndexChangeEvent):void
+			{
+				groupNameValue = groupCombo.selectedItem ;
+			}
+
+
+			protected function button2_clickHandler(event:MouseEvent):void
+			{
+				this.close() ;
+			}
+			
+			
+			/*
+			updated
+			*/
+			
+			private var trayIcon:BitmapData; 
+			import mx.events.CloseEvent;
+
+			public function loadTrayIcon():void
+			{
+				var loader:Loader = new Loader();
+				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, readyToTray);
+				loader.load(new URLRequest("assets/icon_016.png"));
+			}
+			private function minToTray(event:Event):void{
+				event.preventDefault();
+				dock();
+			}
+			
+			public function readyToTray(event:Event):void{
+				trayIcon = event.target.content.bitmapData;
+				
+				var myMenu:NativeMenu = new NativeMenu();
+				
+				var openItem:NativeMenuItem = new NativeMenuItem("Open");
+				var closeItem:NativeMenuItem = new NativeMenuItem("Close");
+				
+				openItem.addEventListener(Event.SELECT, unDock);
+				closeItem.addEventListener(Event.SELECT, closeApp);
+				
+				myMenu.addItem(openItem);
+				myMenu.addItem(new NativeMenuItem("", true));
+				myMenu.addItem(closeItem);
+				
+				if(NativeApplication.supportsSystemTrayIcon){
+					SystemTrayIcon(NativeApplication.nativeApplication.icon).tooltip = "GenieShout";
+					
+					SystemTrayIcon(NativeApplication.nativeApplication.icon).
+						addEventListener(MouseEvent.CLICK, unDock);					
+					stage.nativeWindow.addEventListener(NativeWindowDisplayStateEvent.DISPLAY_STATE_CHANGING, winMinimized);
+					
+					SystemTrayIcon(NativeApplication.nativeApplication.icon).menu = myMenu;
+				}
+			}
+			
+			private function winMinimized(displayStateEvent:NativeWindowDisplayStateEvent):void{
+				if(displayStateEvent.afterDisplayState == NativeWindowDisplayState.MINIMIZED){
+					displayStateEvent.preventDefault();
+					dock();
+				}
+			}
+			
+			public function dock():void{
+				stage.nativeWindow.visible = false;				
+				NativeApplication.nativeApplication.icon.bitmaps = [trayIcon];
+			}
+			
+			public function unDock(event:Event):void{
+				stage.nativeWindow.visible = true;
+				stage.nativeWindow.orderToFront();				
+				NativeApplication.nativeApplication.icon.bitmaps = [];
+			}
+			
+			private function closeApp(event:Event):void{
+				stage.nativeWindow.close();
+			}
+			
+			protected function windowedapplication1_creationCompleteHandler(event:FlexEvent):void
+			{
+				loadTrayIcon();	
+				//	this.addEventListener(Event.CLOSING, minToTray); 
+			}
+
+
+			protected function vbox1_showHandler(event:FlexEvent):void
+			{
+				userName.text = "" ;
+			}
+
+		]]>
+	</fx:Script>
+	
+	<mx:Canvas width="100%" height="100%">
+		
+		<mx:constraintRows>
+			<mx:ConstraintRow id="row1"
+							  height="10%"/>
+			<mx:ConstraintRow id="row2"
+							  height="90%"/>
+		</mx:constraintRows>
+		<mx:Canvas height="100%"
+				   verticalScrollPolicy="off"
+				   backgroundColor="white"
+				   horizontalScrollPolicy="off"
+				   left="5"
+				   right="5"
+				   width="100%"
+				   top="row1:0"
+				   bottom="row1:0">
+			<mx:constraintColumns>
+				<mx:ConstraintColumn id="col1"
+									 width="15%"/>
+				<mx:ConstraintColumn id="col2"
+									 width="60%"/>
+				<mx:ConstraintColumn id="col3"
+									 width="25%"/>
+			</mx:constraintColumns>
+			
+			<mx:Image maintainAspectRatio="true"
+					  smoothBitmapContent="true"
+					  source="@Embed(source='assets/icon_128.png')"
+					  left="col1:10"
+					  right="col1:0"
+					  height="100%"
+					  top="3"/>
+			
+			<mx:Image maintainAspectRatio="true"
+					  smoothBitmapContent="true"
+					  source="@Embed(source='assets/appname.png')"
+					  left="col2:0"
+					  right="col2:0"
+					  height="100%"
+					  horizontalAlign="center"
+					  top="5"/>
+			
+			<s:VGroup left="col3:0"
+					  right="col3:0"
+					  horizontalAlign="right"
+					  verticalAlign="middle"
+					  width="100%"
+					  top="6"
+					  >
+				
+				<mx:HBox horizontalAlign="right" right="40">
+					<mx:LinkButton label="Setting" styleName="headerButtons" />					
+					<mx:LinkButton label="About" styleName="headerButtons" />
+				</mx:HBox>
+				
+			</s:VGroup>
+			
+		</mx:Canvas>
+		<mx:VBox width="100%" height="100%" top="38" horizontalAlign="center" horizontalCenter="0" verticalAlign="middle">	
+			<mx:ViewStack width="100%" height="100%" id="screenStack" >
+				
+				<mx:VBox width="100%" height="100%" label="Default Page" minHeight="0" 
+						 horizontalAlign="center" verticalAlign="middle" show="vbox1_showHandler(event)" >			
+					<mx:HBox width="100%" horizontalAlign="center">
+						<mx:Label  text="User Name: " width="100" />
+						<mx:TextInput id="userName" width="150" enter="button1_clickHandler(event)" restrict="A-Z0-9a-z" />
+					</mx:HBox>
+					<mx:HBox width="100%" horizontalAlign="center">
+						<mx:Label  text="Group Name: " width="100" />
+						<s:ComboBox dataProvider="{groupName}" id="groupCombo" 
+									enabled="false" selectedIndex="1" width="150" change="groupCombo_changeHandler(event)" />
+					</mx:HBox>
+					<mx:Spacer /><mx:Spacer />
+					<mx:HBox>
+						<mx:Button  label="Join Chat" click="button1_clickHandler(event)" />
+						<mx:Button  label="Exit" click="button2_clickHandler(event)" />
+					</mx:HBox>
+				</mx:VBox>
+				
+				<!--	<chat:AdvancedChatWindow  height="100%" id="chatWindow"  width="100%" />	-->		
+				<chat:ChatWindow height="100%" id="chatWindow" userName="{userName.text}" 
+								 groupName="{groupCombo.selectedItem}" ipAddress="{ipAddress}" width="100%" minHeight="0" />	
+				
+			</mx:ViewStack>
+		</mx:VBox>	
+		</mx:Canvas>
+</s:WindowedApplication>
