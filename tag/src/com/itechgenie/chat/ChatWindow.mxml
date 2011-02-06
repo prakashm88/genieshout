@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+			show="canvas1_showHandler(event)"
+			creationComplete="canvas1_initializeHandler()"
+			height="100%"
+			width="100%" xmlns:chat="com.itechgenie.chat.*"
+		   >
+	<fx:Declarations>		
+		<mx:HTTPService id="chatUpdater" method="GET" resultFormat="text"
+						url="http://itechgenie.com/test_mph/chat/updateChat.php" showBusyCursor="true" />
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import flash.net.navigateToURL;
+			import flash.utils.clearInterval;
+			
+			import mx.collections.XMLListCollection;
+			import mx.controls.Alert;
+			import mx.controls.Label;
+			import mx.controls.Text;
+			import mx.events.ColorPickerEvent;
+			import mx.events.FlexEvent;
+			[Bindable]
+			private var myLoader:URLLoader;
+			[Bindable]
+			public var userName:String ;
+			public var ipAddress:String;
+			[Bindable]
+			public var groupName:String;
+			[Bindable]
+			private var chatHistoryDataProvider:XMLListCollection;
+			private var oldChatLog:XMLListCollection ;
+			private var myXml:XML;
+			public var interval:uint ;
+			
+			public var msgCounter:int = 0; 
+			private var dataChangeFlag:Boolean;
+			private var maxScrollPolicy:int ;
+			private var alrtTimer:Timer;
+			[Bindable]
+			public var textColor:String = "000000" ; 
+			
+			private function popUpShout():void
+			{
+				if(!stage.nativeWindow.active)
+				{
+				stage.nativeWindow.notifyUser("New Message obtained");
+				if(!stage.nativeWindow.visible){				
+					parentApplication.unDock(null);	
+					stage.nativeWindow.orderToBack();
+				}
+				}
+			}
+			
+			protected function updatingColumn(event:Event):void
+			{
+				refreshData();
+			}
+			
+			protected function canvas1_initializeHandler():void
+			{
+				if(groupName==null)
+				{
+					groupName = parentApplication.groupNameValue ;
+				}
+			//	refreshData();
+			//	interval= setInterval(refreshData, 5000); 		
+			//	chatTextArea.addEventListener(KeyboardEvent.KEY_DOWN,chatTextKeyPress);
+			}
+			
+			private function chatTextKeyPress(event:KeyboardEvent):void
+			{
+				if(event.keyCode ==  Keyboard.ENTER)
+				{
+					var text:String = chatTextArea.text ;
+					Alert.show(""+chatTextArea.text);
+					button1_clickHandler(event, text);
+					chatTextArea.text = "adfasds" ;
+				}					
+			}
+ 			
+/* 			private function dataComplete(e:Event):void
+			{
+			//	maxScrollPolicy = myDg.maxVerticalScrollPosition ;
+				trace("muloader data: " + myLoader) ;
+				if(myLoader.data != null)
+				{
+				trace("XML content: " +myLoader.data.toString());				
+				myXml = new XML(myLoader.data.toString());
+				var count:int = 0;
+				if(myContactsCol != null )
+				{
+					count = myContactsCol.length ;
+				}				
+				myContactsCol = new XMLListCollection(myXml..chatDetail);		
+				trace("Text: " + myXml.toString()) ;
+				msgCounter = myContactsCol.length ;
+				if(count != myContactsCol.length)
+				{
+				dataChangeFlag = true ;	
+				popUpShout();
+				}
+				else
+					dataChangeFlag = false;
+				}
+				else
+					refreshData();				
+			}  */
+			
+ 			private function dataComplete(e:Event):void
+			{
+				if(myLoader.data != null )
+				{
+				trace("XML content: " +myLoader.data.toString());				
+				myXml = new XML(myLoader.data.toString());
+				var tempChatDataProvider:XMLListCollection = new XMLListCollection(myXml..chatDetail);
+				trace("Temp Chat: " + tempChatDataProvider.toString()) ;
+				
+				if(myXml.toString() == 0)
+				{
+					trace("No new Data.") ;					
+				}
+				else
+				{
+					if(chatHistoryDataProvider != null && chatHistoryDataProvider.length != 0 )
+					{	
+						for each(var tempObject:Object in chatHistoryDataProvider)
+						{
+							//trace("Time Object: " + tempObject.time) ;
+							if(tempObject.time == null || tempObject.time == "")
+							{
+								trace("Empty time object: ") ;
+								chatHistoryDataProvider.
+									removeItemAt(chatHistoryDataProvider.getItemIndex(tempObject));
+							}
+						}						 
+						chatHistoryDataProvider.addAll(tempChatDataProvider);
+						msgCounter = chatHistoryDataProvider.length ;
+						trace("msgCounter: " + msgCounter);
+					}
+					else
+					{
+						chatHistoryDataProvider = tempChatDataProvider ;
+						msgCounter = chatHistoryDataProvider.length ;
+						trace("msgCounter at replacing the dataprovider: " + msgCounter ) ;
+					}
+				}				
+				}
+				cursorManager.removeBusyCursor();
+				interval = setInterval(refreshData, 5000); 
+			}
+			
+			protected function button1_clickHandler(event:Event, text:String):void
+			{	
+				var chatText:String;
+				if( event as Class == KeyboardEvent)
+				{
+					chatText = text;
+				}
+				else
+				{
+					chatText = chatTextArea.text ;
+				}
+				trace("chatText: " + chatText) ;
+				chatTextArea.text = "";
+				var machineName:String = File.userDirectory.name ;				
+				trace("runtimeVersion : "  +  NativeApplication.nativeApplication.runtimeVersion + " - " + machineName );
+				
+				if(chatText != "")
+				{					
+					if(chatHistoryDataProvider == null )
+					{
+						chatHistoryDataProvider = new XMLListCollection();
+					}
+					
+					var params:Object = new Object();
+					params.userName = userName;
+					params.message = chatText;
+					params.machineUser = machineName ;
+					params.groupName = groupName ;
+					params.msgColor = textColor ;
+					params.version = NativeApplication.nativeApplication.runtimeVersion ;
+					trace("ipaddress: " + ipAddress );
+					params.ipAddress = ipAddress ;
+					chatUpdater.addEventListener(Event.COMPLETE, updatingColumn );
+					chatUpdater.addEventListener(IOErrorEvent.IO_ERROR, reportError );
+					chatUpdater.send(params);					
+
+					//trace("Text: " + chatHistoryDataProvider.toString()) ;					
+					
+					chatTextArea.text="";
+					
+				}
+				chatTextArea.setFocus() ;
+			}
+			
+			protected function refreshData():void
+			{
+			//	Alert.show("hi2" + groupName); 
+				clearInterval(interval);
+				trace("groupName: " + groupName) ;	
+				trace("msgCounter: " + msgCounter ) ;
+				var requestedURL:String = 'http://itechgenie.com/test_mph/chat/getNewChat.php?gpn=' + groupName + '&cnt=' + msgCounter ;
+				trace("requestedURL: " + requestedURL ) ;
+				var myReq:URLRequest = new URLRequest(requestedURL);				
+				myLoader = new URLLoader();
+				myLoader.addEventListener(Event.COMPLETE, dataComplete);
+				myLoader.addEventListener(IOErrorEvent.IO_ERROR, reportError );
+				cursorManager.setBusyCursor();
+				myLoader.load(myReq);	
+				trace(myLoader);		
+			}
+			
+			protected function reportError(event:Event):void
+			{
+				cursorManager.removeBusyCursor();
+				Alert.show("Unable to reach Server currently. Please try again later.");
+				button2_clickHandler(event);
+			}
+			
+			protected function myDg_updateCompleteHandler(event:FlexEvent):void
+			{
+				var currLen:uint = myDg.dataProvider.length;
+				trace(currLen) ;
+				myDg.scrollToIndex(currLen);
+				popUpShout();
+			}
+	
+			protected function canvas1_showHandler(event:FlexEvent):void
+			{
+			//	Alert.show("show handler");				
+				refreshData();
+				clearInterval(interval);
+				interval = setInterval(refreshData, 5000); 
+			}
+
+
+			protected function button2_clickHandler(event:Event):void
+			{
+				clearInterval(interval);
+				msgCounter = 0;
+				chatHistoryDataProvider = new XMLListCollection();
+				parentApplication.screenStack.selectedIndex = 0;
+			}
+
+
+			protected function button1_keyDownHandler(event:KeyboardEvent):void
+			{				
+				if(event.keyCode==Keyboard.ENTER)
+				{
+					button1_clickHandler(event, chatTextArea.text);
+					chatTextArea.text = "" ;
+				}
+			}
+
+			protected function button2_keyDownHandler(event:KeyboardEvent):void
+			{
+				if(event.keyCode==Keyboard.ENTER)
+				{
+					button2_clickHandler(event);
+				}
+			}
+
+			protected function chatTextColorPicker_changeHandler(event:ColorPickerEvent):void
+			{
+				trace("chatTextColorPicker.colorField: " + chatTextColorPicker.selectedColor );
+				var color:String	= chatTextColorPicker.selectedColor.toString(16);
+				if (color.length < 6){
+					var colorLength:int = 6-color.length;
+					var temp_color:String = '';
+					for (var i:int=0; i<colorLength; i++){
+						temp_color += '0';
+					}
+					temp_color += color;
+					color = temp_color
+				} 
+				textColor = color ;
+				chatTextArea.setStyle("color", "#"+color );
+			}
+
+		]]>
+	</fx:Script>
+	<mx:VBox width="100%" height="100%" >	
+		
+<!-- <mx:DataGrid  id="myDg" dataProvider="{myContactsCol}"
+					  width="100%" sortableColumns="false"
+					  updateComplete="myDg_updateCompleteHandler(event)" >
+			<mx:columns> 
+				<mx:DataGridColumn headerText="Name" dataField="name" width="110" visible="false" />
+				<mx:DataGridColumn headerText="Message" dataField="chattext" showDataTips="true" itemRenderer="mx.controls.Text" />
+			</mx:columns>
+		</mx:DataGrid>
+		
+		-->
+		
+		<mx:DataGrid  id="myDg" dataProvider="{chatHistoryDataProvider}" variableRowHeight="true" height="190"
+					  width="100%" sortableColumns="false" alternatingItemColors="[#FFFFFF,#FFFFFF]"
+					  updateComplete="myDg_updateCompleteHandler(event)" >
+			<mx:columns> 
+				<mx:DataGridColumn headerText="Name" dataField="name" width="75" showDataTips="true"  />
+				<mx:DataGridColumn headerText="ID" dataField="machineUser" width="75" showDataTips="true" visible="{parentApplication.showUser}" />
+				<mx:DataGridColumn headerText="Message" dataField="chattext" showDataTips="true"
+								   itemRenderer="com.itechgenie.chat.renderer.TextColorRenderer" />
+			</mx:columns>
+		</mx:DataGrid>
+		
+		<mx:HBox width="100%" height="100%" horizontalAlign="center">	
+			<mx:TextArea wordWrap="true" width="75%" height="85" id="chatTextArea" />	
+			
+			<mx:VBox width="24%" >
+				<s:Button label="Send" height="55" width="100%" click="button1_clickHandler(event,'')" keyDown="button1_keyDownHandler(event)" />				
+				<mx:HBox width="100%">			
+					<mx:ColorPicker id="chatTextColorPicker" change="chatTextColorPicker_changeHandler(event)" />
+					<s:Button label="Leave Chat" height="23" width="80%" click="button2_clickHandler(event)" keyDown="button2_keyDownHandler(event)" />
+				</mx:HBox>
+			</mx:VBox>		
+			
+		</mx:HBox>
+	</mx:VBox>
+</mx:Canvas>
