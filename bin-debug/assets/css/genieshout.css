@@ -1,0 +1,18 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+
+mx|Label.projectTitle
+{
+	color: #316f46;
+	fontSize: 16;
+	fontWeight: bold;	
+}
+
+mx|LinkButton.headerButtons {
+	selectionColor: #7aa426;
+	rollOverColor: #316f46;
+	textSelectedColor: #ffffff;
+	textRollOverColor: #ffffff;
+	color: #316f46;
+}
