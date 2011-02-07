@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				title="Settings" initialize="titlewindow1_initializeHandler(event)"
+				creationComplete="titlewindow1_creationCompleteHandler(event)"
+				showCloseButton="true"
+				layout="absolute" width="300" height="150" close="titlewindow1_closeHandler(event)">
+
+	<fx:Script>
+		<![CDATA[
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			protected function machineNameOpt_clickHandler(event:MouseEvent):void
+			{
+				if(machineNameOpt.selected)
+					parentApplication.showUser = true;
+				else
+					parentApplication.showUser = false;		
+			}
+
+			protected function timeOpt_clickHandler(event:MouseEvent):void
+			{				
+				if(timeOpt.selected)
+					parentApplication.showTime = true;
+				else
+					parentApplication.showTime = false;		
+			}
+
+			protected function titlewindow1_creationCompleteHandler(event:FlexEvent):void
+			{
+				if(parentApplication.showUser)
+				{
+					machineNameOpt.selected = true ;
+				}
+				if(parentApplication.showTime)
+				{
+					timeOpt.selected = true ;
+				}
+			}
+			
+			protected function titlewindow1_closeHandler(event:Event):void
+			{
+				PopUpManager.removePopUp(this);
+			}
+
+			protected function titlewindow1_initializeHandler(event:FlexEvent):void
+			{
+				this.addEventListener(KeyboardEvent.KEY_DOWN, checkEscape );
+			}
+			
+			protected function checkEscape(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ESCAPE)
+					PopUpManager.removePopUp(this);
+			}
+
+
+			protected function saveSettings_clickHandler(event:MouseEvent):void
+			{
+				machineNameOpt_clickHandler(event);
+				timeOpt_clickHandler(event);
+				titlewindow1_closeHandler(event);
+			}
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:VBox width="100%" height="100%" verticalAlign="middle" horizontalAlign="center" >
+	
+	<mx:HBox width="100%" horizontalAlign="center">
+		<mx:Label  text="Show Machine Details: " width="160" />
+		<mx:CheckBox id="machineNameOpt" />
+	</mx:HBox>
+	<mx:HBox width="100%" horizontalAlign="center">
+		<mx:Label  text="Show Time: " width="160" />
+		<mx:CheckBox id="timeOpt"  />
+	</mx:HBox>
+		<mx:Spacer />			
+		<mx:Spacer />
+	<mx:HBox>
+			<mx:Button  label="Save" click="saveSettings_clickHandler(event)" id="saveSettings" />
+			<mx:Button  label="Close" click="titlewindow1_closeHandler(event)" id="closeSettings" />
+	</mx:HBox>
+	
+	</mx:VBox>
+</mx:TitleWindow>

@@ -66,49 +66,19 @@
 				{
 					groupName = parentApplication.groupNameValue ;
 				}
-			//	refreshData();
-			//	interval= setInterval(refreshData, 5000); 		
-			//	chatTextArea.addEventListener(KeyboardEvent.KEY_DOWN,chatTextKeyPress);
+				chatTextArea.addEventListener(KeyboardEvent.KEY_DOWN,chatTextKeyPress);
 			}
 			
 			private function chatTextKeyPress(event:KeyboardEvent):void
 			{
 				if(event.keyCode ==  Keyboard.ENTER)
 				{
-					var text:String = chatTextArea.text ;
-					Alert.show(""+chatTextArea.text);
-					button1_clickHandler(event, text);
-					chatTextArea.text = "adfasds" ;
-				}					
+					var text:String = chatTextArea.text ;					
+					event.preventDefault();
+					button1_clickHandler(event, text);					
+					chatTextArea.text = "" ;
+				}
 			}
- 			
-/* 			private function dataComplete(e:Event):void
-			{
-			//	maxScrollPolicy = myDg.maxVerticalScrollPosition ;
-				trace("muloader data: " + myLoader) ;
-				if(myLoader.data != null)
-				{
-				trace("XML content: " +myLoader.data.toString());				
-				myXml = new XML(myLoader.data.toString());
-				var count:int = 0;
-				if(myContactsCol != null )
-				{
-					count = myContactsCol.length ;
-				}				
-				myContactsCol = new XMLListCollection(myXml..chatDetail);		
-				trace("Text: " + myXml.toString()) ;
-				msgCounter = myContactsCol.length ;
-				if(count != myContactsCol.length)
-				{
-				dataChangeFlag = true ;	
-				popUpShout();
-				}
-				else
-					dataChangeFlag = false;
-				}
-				else
-					refreshData();				
-			}  */
 			
  			private function dataComplete(e:Event):void
 			{
@@ -150,11 +120,11 @@
 				}				
 				}
 				cursorManager.removeBusyCursor();
-				interval = setInterval(refreshData, 5000); 
 			}
 			
 			protected function button1_clickHandler(event:Event, text:String):void
 			{	
+				cursorManager.setBusyCursor();
 				var chatText:String;
 				if( event as Class == KeyboardEvent)
 				{
@@ -188,18 +158,14 @@
 					chatUpdater.addEventListener(Event.COMPLETE, updatingColumn );
 					chatUpdater.addEventListener(IOErrorEvent.IO_ERROR, reportError );
 					chatUpdater.send(params);					
-
-					//trace("Text: " + chatHistoryDataProvider.toString()) ;					
-					
-					chatTextArea.text="";
-					
+					chatTextArea.text="";					
 				}
+				cursorManager.removeBusyCursor();
 				chatTextArea.setFocus() ;
 			}
 			
 			protected function refreshData():void
 			{
-			//	Alert.show("hi2" + groupName); 
 				clearInterval(interval);
 				trace("groupName: " + groupName) ;	
 				trace("msgCounter: " + msgCounter ) ;
@@ -231,7 +197,6 @@
 	
 			protected function canvas1_showHandler(event:FlexEvent):void
 			{
-			//	Alert.show("show handler");				
 				refreshData();
 				clearInterval(interval);
 				interval = setInterval(refreshData, 5000); 
@@ -246,7 +211,6 @@
 				parentApplication.screenStack.selectedIndex = 0;
 			}
 
-
 			protected function button1_keyDownHandler(event:KeyboardEvent):void
 			{				
 				if(event.keyCode==Keyboard.ENTER)
@@ -257,7 +221,7 @@
 			}
 
 			protected function button2_keyDownHandler(event:KeyboardEvent):void
-			{
+			{				
 				if(event.keyCode==Keyboard.ENTER)
 				{
 					button2_clickHandler(event);
@@ -279,37 +243,27 @@
 				} 
 				textColor = color ;
 				chatTextArea.setStyle("color", "#"+color );
+				chatTextArea.setFocus() ;
 			}
 
 		]]>
 	</fx:Script>
 	<mx:VBox width="100%" height="100%" >	
 		
-<!-- <mx:DataGrid  id="myDg" dataProvider="{myContactsCol}"
-					  width="100%" sortableColumns="false"
-					  updateComplete="myDg_updateCompleteHandler(event)" >
-			<mx:columns> 
-				<mx:DataGridColumn headerText="Name" dataField="name" width="110" visible="false" />
-				<mx:DataGridColumn headerText="Message" dataField="chattext" showDataTips="true" itemRenderer="mx.controls.Text" />
-			</mx:columns>
-		</mx:DataGrid>
-		
-		-->
-		
-		<mx:DataGrid  id="myDg" dataProvider="{chatHistoryDataProvider}" variableRowHeight="true" height="190"
-					  width="100%" sortableColumns="false" alternatingItemColors="[#FFFFFF,#FFFFFF]"
+	<mx:DataGrid  id="myDg" dataProvider="{chatHistoryDataProvider}" variableRowHeight="true" height="190"
+					  width="100%" sortableColumns="false" styleName="chatLogDataGrid" 	alternatingItemColors= "[#FFFFFF,#FFFFFF]"
 					  updateComplete="myDg_updateCompleteHandler(event)" >
 			<mx:columns> 
 				<mx:DataGridColumn headerText="Name" dataField="name" width="75" showDataTips="true"  />
-				<mx:DataGridColumn headerText="ID" dataField="machineUser" width="75" showDataTips="true" visible="{parentApplication.showUser}" />
+				<mx:DataGridColumn headerText="UID" dataField="machineUser" width="65" showDataTips="true" visible="{parentApplication.showUser}" itemRenderer="mx.controls.Label" />
+				<mx:DataGridColumn headerText="Time" dataField="time" width="65" showDataTips="true" visible="{parentApplication.showTime}" itemRenderer="mx.controls.Label" />
 				<mx:DataGridColumn headerText="Message" dataField="chattext" showDataTips="true"
 								   itemRenderer="com.itechgenie.chat.renderer.TextColorRenderer" />
 			</mx:columns>
 		</mx:DataGrid>
 		
 		<mx:HBox width="100%" height="100%" horizontalAlign="center">	
-			<mx:TextArea wordWrap="true" width="75%" height="85" id="chatTextArea" />	
-			
+			<mx:TextArea wordWrap="true" width="75%" height="85"  id="chatTextArea" />	
 			<mx:VBox width="24%" >
 				<s:Button label="Send" height="55" width="100%" click="button1_clickHandler(event,'')" keyDown="button1_keyDownHandler(event)" />				
 				<mx:HBox width="100%">			
