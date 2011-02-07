@@ -15,12 +15,19 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.itechgenie.chat.pages.AboutPage;
+			import com.itechgenie.chat.pages.SettingsPage;
+			import com.itechgenie.chat.versioning.AutoVersion;
+			
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
 			
 			import spark.events.IndexChangeEvent;
 
+			[Bindable]
+			public var version:AutoVersion = new AutoVersion(1,0,5);
 			
 			[Bindable]
 			public var groupName:ArrayCollection;
@@ -29,7 +36,9 @@
 			private var ipAddress:String ;
 			
 			[Bindable]
-			public var showUser:Boolean = false ;
+			public var showUser:Boolean = true ;
+			[Bindable]
+			public var showTime:Boolean = true ;
 			
 			[Bindable]
 			public var groupNameValue:String ;
@@ -59,25 +68,57 @@
 				groupName = new ArrayCollection(
 					[  "Select",
 						"Kumaran", 
-						"SSRD", 
-					"SGPN", 
-						"SPNX", 
-						"SSNT"
-					]);	
+						"Sample"
+					]);
 				
 				var netInterfaces = NetworkInfo.networkInfo.findInterfaces();			
 				var addresses = netInterfaces[0].addresses;				
 				ipAddress = addresses[0].address;				
 				trace(ipAddress);				
-				groupNameValue = "Kumaran" ;					
+				groupNameValue = "Kumaran" ;				
+			
 			}
 			
+			private function writeVersionNumber():void
+			{
+				var result:String = "";
+				result += 'Version String:' + version
+				
+				result += '\nMajor: ' + version.major;
+				result += '\nMinor: ' + version.minor; 
+				result += '\nRev: ' + version.revision;
+				result += '\nBuild: ' + version.build; 
+				result += '\nTotal: ' + version.totalBuilds; 
+				
+				var file:File = new File();
+				file.nativePath = "D:\\MyWorks\\genieshout";
+				var testFileStream:FileStream = new FileStream();         
+				file = file.resolvePath("version.txt");         
+				testFileStream.open(file, FileMode.WRITE);         
+				testFileStream.writeUTF(result);         
+				testFileStream.close();
+			}
+			
+			private function exitChatEnterCheck(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ENTER) 
+				{
+					button1_clickHandler(null) ;	
+				}
+			}
+			
+			private function joinChatEnterCheck(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ENTER) 
+				{
+					button2_clickHandler(null) ;	
+				}
+			}
 
 			protected function groupCombo_changeHandler(event:IndexChangeEvent):void
 			{
 				groupNameValue = groupCombo.selectedItem ;
 			}
-
 
 			protected function button2_clickHandler(event:MouseEvent):void
 			{
@@ -153,14 +194,30 @@
 			
 			protected function windowedapplication1_creationCompleteHandler(event:FlexEvent):void
 			{
+				writeVersionNumber();
 				loadTrayIcon();	
-				//	this.addEventListener(Event.CLOSING, minToTray); 
+				//	this.addEventListener(Event.CLOSING, minToTray);				
+				joinChat.addEventListener(KeyboardEvent.KEY_DOWN, joinChatEnterCheck );
+				joinChat.addEventListener(KeyboardEvent.KEY_DOWN, exitChatEnterCheck );				
 			}
-
 
 			protected function vbox1_showHandler(event:FlexEvent):void
 			{
 				userName.text = "" ;
+			}
+
+
+			protected function settingsButton_clickHandler(event:MouseEvent):void
+			{
+				var settingsPopUP:SettingsPage=SettingsPage(PopUpManager.createPopUp(this, SettingsPage, true));
+				PopUpManager.centerPopUp(settingsPopUP);
+			}
+
+
+			protected function aboutButton_clickHandler(event:MouseEvent):void
+			{
+				var aboutPopUP:AboutPage=AboutPage(PopUpManager.createPopUp(this, AboutPage, true));
+				PopUpManager.centerPopUp(aboutPopUP);
 			}
 
 		]]>
@@ -218,8 +275,8 @@
 					  >
 				
 				<mx:HBox horizontalAlign="right" right="40">
-					<mx:LinkButton label="Setting" styleName="headerButtons" />					
-					<mx:LinkButton label="About" styleName="headerButtons" />
+					<mx:LinkButton label="Setting" styleName="headerButtons" id="settingsButton" click="settingsButton_clickHandler(event)" />					
+					<mx:LinkButton label="About" styleName="headerButtons" id="aboutButton" click="aboutButton_clickHandler(event)" />
 				</mx:HBox>
 				
 			</s:VGroup>
@@ -241,8 +298,8 @@
 					</mx:HBox>
 					<mx:Spacer /><mx:Spacer />
 					<mx:HBox>
-						<mx:Button  label="Join Chat" click="button1_clickHandler(event)" />
-						<mx:Button  label="Exit" click="button2_clickHandler(event)" />
+						<mx:Button  label="Join Chat" click="button1_clickHandler(event)" id="joinChat" />
+						<mx:Button  label="Exit" click="button2_clickHandler(event)" id="exitChat" />
 					</mx:HBox>
 				</mx:VBox>
 				

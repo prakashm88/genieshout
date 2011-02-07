@@ -5,7 +5,21 @@
 mx|Label.projectTitle
 {
 	color: #316f46;
-	fontSize: 16;
+	fontSize: 20;
+	fontWeight: bold;	
+}
+
+mx|Label.projectTag
+{
+	color: #316f46;
+	fontSize: 12;
+	fontWeight: bold;	
+}
+
+mx|Label.projectVersion
+{
+	color: #316f46;
+	fontSize: 11;
 	fontWeight: bold;	
 }
 
@@ -15,4 +29,10 @@ mx|LinkButton.headerButtons {
 	textSelectedColor: #ffffff;
 	textRollOverColor: #ffffff;
 	color: #316f46;
+}
+
+mx|DataGrid.chatLogDataGrid {
+	selectionColor: #7aa426;
+	textSelectedColor: #ffffff;
+	/*	rollOverColor: #7aa426; 316f46 */
 }
