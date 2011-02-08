@@ -9,7 +9,7 @@
 		   >
 	<fx:Declarations>		
 		<mx:HTTPService id="chatUpdater" method="GET" resultFormat="text"
-						url="http://itechgenie.com/test_mph/chat/updateChat.php" showBusyCursor="true" />
+						showBusyCursor="true" />
 	</fx:Declarations>
 	
 	<fx:Script>
@@ -66,6 +66,7 @@
 				{
 					groupName = parentApplication.groupNameValue ;
 				}
+				chatUpdater.url = "http://"+ parentApplication.serverIP +"/genieshout/updateChat.php";
 				chatTextArea.addEventListener(KeyboardEvent.KEY_DOWN,chatTextKeyPress);
 			}
 			
@@ -134,6 +135,7 @@
 				{
 					chatText = chatTextArea.text ;
 				}
+				event.preventDefault();
 				trace("chatText: " + chatText) ;
 				chatTextArea.text = "";
 				var machineName:String = File.userDirectory.name ;				
@@ -155,21 +157,24 @@
 					params.version = NativeApplication.nativeApplication.runtimeVersion ;
 					trace("ipaddress: " + ipAddress );
 					params.ipAddress = ipAddress ;
+					trace(chatUpdater.url) ;
 					chatUpdater.addEventListener(Event.COMPLETE, updatingColumn );
 					chatUpdater.addEventListener(IOErrorEvent.IO_ERROR, reportError );
 					chatUpdater.send(params);					
 					chatTextArea.text="";					
 				}
+				interval = setInterval(refreshData, 5000); 
 				cursorManager.removeBusyCursor();
 				chatTextArea.setFocus() ;
 			}
 			
 			protected function refreshData():void
 			{
+				trace("interval: " + interval) ;
 				clearInterval(interval);
 				trace("groupName: " + groupName) ;	
 				trace("msgCounter: " + msgCounter ) ;
-				var requestedURL:String = 'http://itechgenie.com/test_mph/chat/getNewChat.php?gpn=' + groupName + '&cnt=' + msgCounter ;
+				var requestedURL:String = 'http://'+ parentApplication.serverIP +'/genieshout/getNewChat.php?gpn=' + groupName + '&cnt=' + msgCounter ;
 				trace("requestedURL: " + requestedURL ) ;
 				var myReq:URLRequest = new URLRequest(requestedURL);				
 				myLoader = new URLLoader();
@@ -181,8 +186,9 @@
 			}
 			
 			protected function reportError(event:Event):void
-			{
+			{				
 				cursorManager.removeBusyCursor();
+				clearInterval(interval);
 				Alert.show("Unable to reach Server currently. Please try again later.");
 				button2_clickHandler(event);
 			}
@@ -199,13 +205,13 @@
 			{
 				refreshData();
 				clearInterval(interval);
-				interval = setInterval(refreshData, 5000); 
+				interval = setInterval(refreshData, 5000);	
+				chatTextArea.text = "" ;
 			}
-
 
 			protected function button2_clickHandler(event:Event):void
 			{
-				clearInterval(interval);
+				clearInterval(interval);						
 				msgCounter = 0;
 				chatHistoryDataProvider = new XMLListCollection();
 				parentApplication.screenStack.selectedIndex = 0;

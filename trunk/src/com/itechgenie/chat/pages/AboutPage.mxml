@@ -23,7 +23,7 @@
 			[Bindable]
 			public var siteURL:String ;
 			
-			protected function titlewindow1_closeHandler(event:CloseEvent):void
+			protected function titlewindow1_closeHandler(event:Event):void
 			{
 				updateStatus.visible = false;
 				PopUpManager.removePopUp(this);
@@ -52,7 +52,7 @@
 				siteURL = "<a href='http://itechgenie.com/myblog/genieshout' >Home Page</a>" ;
 			}
 
-			protected function linkbutton1_clickHandler(event:MouseEvent):void
+			protected function openHomePage(event:MouseEvent):void
 			{
 				var urlRequest:URLRequest =  new URLRequest("http://itechgenie.com/myblog/genieshout") ;
 				navigateToURL(urlRequest);
@@ -64,21 +64,22 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
-		<mx:VBox width="100%" height="100%" verticalAlign="top" horizontalAlign="center">
-			
+		<mx:VBox width="100%" height="100%" verticalAlign="top" horizontalAlign="center">			
 			<mx:Label text="GenieShout" styleName="projectTitle" />
 			<mx:Label text="{versionString}" styleName="projectVersion" />
-			<mx:LinkButton  click="linkbutton1_clickHandler(event)" label="Visit Home Page" styleName="headerButtons" />	
+			<mx:LinkButton  click="openHomePage(event)" label="Visit Home Page" styleName="headerButtons" />	
 			<mx:Image maintainAspectRatio="true"
 					  smoothBitmapContent="true"
 					  source="@Embed(source='assets/icon_128.png')"
 						width="75"
-					  	height="75"					 
+					  	height="75" click="openHomePage(event)"					 
 					 />
 			<mx:Spacer/>
 			<mx:Label id="updateStatus" text="GenieShout installed in upto date." visible="false" />
+			<mx:HBox width="100%" horizontalAlign="center">
 			<mx:Button label="Check For Updates" id="checkUpdate" click="checkUpdate_clickHandler(event)" />
-			
+			<mx:Button label="Close" id="closeAbout" click="titlewindow1_closeHandler(event)" />
+			</mx:HBox>
 		</mx:VBox>
 	
 </mx:TitleWindow>
