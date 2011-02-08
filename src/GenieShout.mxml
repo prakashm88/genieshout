@@ -36,6 +36,9 @@
 			private var ipAddress:String ;
 			
 			[Bindable]
+			public var serverIP:String = "172.24.30.158" ;
+			
+			[Bindable]
 			public var showUser:Boolean = true ;
 			[Bindable]
 			public var showTime:Boolean = true ;
@@ -90,10 +93,13 @@
 				result += '\nBuild: ' + version.build; 
 				result += '\nTotal: ' + version.totalBuilds; 
 				
-				var file:File = new File();
-				file.nativePath = "D:\\MyWorks\\genieshout";
-				var testFileStream:FileStream = new FileStream();         
-				file = file.resolvePath("version.txt");         
+				/* var file:File = new File();
+				file.nativePath = "D:\\MyWorks\\genieshout";				      
+				file = file.resolvePath("version.txt"); */
+				
+				var file:File = File.applicationStorageDirectory.resolvePath("version.txt");
+				
+				var testFileStream:FileStream = new FileStream();   
 				testFileStream.open(file, FileMode.WRITE);         
 				testFileStream.writeUTF(result);         
 				testFileStream.close();
@@ -206,13 +212,11 @@
 				userName.text = "" ;
 			}
 
-
 			protected function settingsButton_clickHandler(event:MouseEvent):void
 			{
 				var settingsPopUP:SettingsPage=SettingsPage(PopUpManager.createPopUp(this, SettingsPage, true));
 				PopUpManager.centerPopUp(settingsPopUP);
 			}
-
 
 			protected function aboutButton_clickHandler(event:MouseEvent):void
 			{

@@ -5,10 +5,11 @@
 				title="Settings" initialize="titlewindow1_initializeHandler(event)"
 				creationComplete="titlewindow1_creationCompleteHandler(event)"
 				showCloseButton="true"
-				layout="absolute" width="300" height="150" close="titlewindow1_closeHandler(event)">
+				layout="absolute" width="400" height="200" close="titlewindow1_closeHandler(event)">
 
 	<fx:Script>
 		<![CDATA[
+			import mx.controls.Alert;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
@@ -31,6 +32,7 @@
 
 			protected function titlewindow1_creationCompleteHandler(event:FlexEvent):void
 			{
+				serverIP.text = parentApplication.serverIP;
 				if(parentApplication.showUser)
 				{
 					machineNameOpt.selected = true ;
@@ -57,12 +59,20 @@
 					PopUpManager.removePopUp(this);
 			}
 
-
 			protected function saveSettings_clickHandler(event:MouseEvent):void
 			{
+				if(serverIP.text == "")
+				{
+					Alert.show("Enter Server details.");
+				}
+				else
+				{
+				trace("server ip: "+ serverIP.text);
+				parentApplication.serverIP = serverIP.text ;	
 				machineNameOpt_clickHandler(event);
-				timeOpt_clickHandler(event);
+				timeOpt_clickHandler(event);				
 				titlewindow1_closeHandler(event);
+				}
 			}
 
 		]]>
@@ -72,14 +82,17 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	<mx:VBox width="100%" height="100%" verticalAlign="middle" horizontalAlign="center" >
-	
 	<mx:HBox width="100%" horizontalAlign="center">
-		<mx:Label  text="Show Machine Details: " width="160" />
-		<mx:CheckBox id="machineNameOpt" />
+			<mx:Label  text="Server Details: " width="140" />
+			<mx:TextInput id="serverIP" restrict="A-Z0-9a-z\.\\\_" width="100" maxChars="40" />
 	</mx:HBox>
 	<mx:HBox width="100%" horizontalAlign="center">
-		<mx:Label  text="Show Time: " width="160" />
-		<mx:CheckBox id="timeOpt"  />
+		<mx:Label  text="Show Machine Details: " width="140"  />
+		<mx:CheckBox id="machineNameOpt" width="100" />
+	</mx:HBox>
+	<mx:HBox width="100%" horizontalAlign="center">
+		<mx:Label  text="Show Time: " width="140" />
+		<mx:CheckBox id="timeOpt" width="100" />
 	</mx:HBox>
 		<mx:Spacer />			
 		<mx:Spacer />
