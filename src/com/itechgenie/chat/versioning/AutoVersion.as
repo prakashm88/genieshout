@@ -52,7 +52,7 @@ package com.itechgenie.chat.versioning
 		// You will only need to repeat these steps if source code is compiled on a
 		// different machine.
 		// ========================================================================
-		[Embed(mimeType="application/octet-stream", source="C:/Documents and Settings/prak1728/Application Data/GenieShout/Local Store/#SharedObjects/AutoVersion.sol")]
+		//[Embed(mimeType="application/octet-stream", source="C:/Documents and Settings/prak1728/Application Data/GenieShout/Local Store/#SharedObjects/AutoVersion.sol")]
 		private var EmbeddedVersion : Class;
 				
 		public function AutoVersion(majorVer:int, minorVer:int, revisionVer:int)

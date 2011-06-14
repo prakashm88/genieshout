@@ -10,11 +10,11 @@ fwrite($log, "GroupName: " . $groupName . "\n" );
 
 if($groupName == null || $groupName == "") 
 {
-$myFile = "generalGroup.txt";
+$myFile = "generalGroup.itg";
 }
 else
 {
-$myFile = $groupName.".txt" ;
+$myFile = $groupName.".itg" ;
 }
 
 fwrite($log, "GroupFileName: " . $myFile . "\n" );
@@ -24,7 +24,6 @@ echo("<xmlFile>");
 
 $fileHandle = fopen($myFile, 'a') or die("can't open file");
 $lines = file($myFile) ;
-fwrite($log, "Fileopen: " . $lines);
 
 foreach ($lines as $line_num => $line) {
 $newLine = htmlspecialchars($line) ;

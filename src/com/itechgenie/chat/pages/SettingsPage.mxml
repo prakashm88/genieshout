@@ -5,42 +5,28 @@
 				title="Settings" initialize="titlewindow1_initializeHandler(event)"
 				creationComplete="titlewindow1_creationCompleteHandler(event)"
 				showCloseButton="true"
-				layout="absolute" width="400" height="200" close="titlewindow1_closeHandler(event)">
+				layout="absolute" width="420" height="250" 
+				close="titlewindow1_closeHandler(event)">
 
 	<fx:Script>
 		<![CDATA[
+			import com.itechgenie.chat.util.Utility;
+			import com.itechgenie.chat.dao.GenieShoutDAO;
+			
+			import flash.net.navigateToURL;
+			
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
-			
-			protected function machineNameOpt_clickHandler(event:MouseEvent):void
-			{
-				if(machineNameOpt.selected)
-					parentApplication.showUser = true;
-				else
-					parentApplication.showUser = false;		
-			}
-
-			protected function timeOpt_clickHandler(event:MouseEvent):void
-			{				
-				if(timeOpt.selected)
-					parentApplication.showTime = true;
-				else
-					parentApplication.showTime = false;		
-			}
 
 			protected function titlewindow1_creationCompleteHandler(event:FlexEvent):void
 			{
-				serverIP.text = parentApplication.serverIP;
-				if(parentApplication.showUser)
-				{
-					machineNameOpt.selected = true ;
-				}
-				if(parentApplication.showTime)
-				{
-					timeOpt.selected = true ;
-				}
+				serverIP.text = parentApplication.serverIP;						
+				if(parentApplication.genieShoutDTO.showMachineID == "true" ) machineNameOpt.selected = true ;
+				else machineNameOpt.selected = false ;
+				if(parentApplication.genieShoutDTO.showTime == "true") timeOpt.selected = true ;
+				else timeOpt.selected = false;
 			}
 			
 			protected function titlewindow1_closeHandler(event:Event):void
@@ -67,12 +53,27 @@
 				}
 				else
 				{
-				trace("server ip: "+ serverIP.text);
-				parentApplication.serverIP = serverIP.text ;	
-				machineNameOpt_clickHandler(event);
-				timeOpt_clickHandler(event);				
-				titlewindow1_closeHandler(event);
+					trace("server ip: "+ serverIP.text);
+					parentApplication.serverIP = serverIP.text ;
+					parentApplication.genieShoutDTO.showMachineID = machineNameOpt.selected;
+					parentApplication.showMachineID = machineNameOpt.selected;
+					parentApplication.genieShoutDTO.showTime = timeOpt.selected;
+					parentApplication.showTime = timeOpt.selected ;
+					if(autoUpdate.selected) parentApplication.autoUpdate = 1 ;
+					else parentApplication.autoUpdate = 0 ; 
+					this.dispatchEvent(new Event("serverIpChange"));
+					titlewindow1_closeHandler(event);
+					((parentApplication.genieShoutDAO) as GenieShoutDAO).insertOrUpdateData(parentApplication.genieShoutDTO);
+					((parentApplication.genieShoutDAO) as GenieShoutDAO).insertOrUpdateIP(parentApplication.serverIP, parentApplication.autoUpdate) ;
 				}
+			}
+
+			protected function linkbutton1_clickHandler(event:MouseEvent):void
+			{
+				var presentation:File = File.applicationDirectory.resolvePath("assets/html/readme.html");
+				trace(presentation.nativePath + " - " + presentation.url + " - " ) ;
+				var urlRequest:URLRequest =  new URLRequest(presentation.nativePath) ;
+				navigateToURL(urlRequest);
 			}
 
 		]]>
@@ -84,7 +85,7 @@
 	<mx:VBox width="100%" height="100%" verticalAlign="middle" horizontalAlign="center" >
 	<mx:HBox width="100%" horizontalAlign="center">
 			<mx:Label  text="Server Details: " width="140" />
-			<mx:TextInput id="serverIP" restrict="A-Z0-9a-z\.\\\_" width="100" maxChars="40" />
+			<mx:TextInput id="serverIP" restrict="A-Z0-9a-z\:\.\\\_" width="100" maxChars="40" />
 	</mx:HBox>
 	<mx:HBox width="100%" horizontalAlign="center">
 		<mx:Label  text="Show Machine Details: " width="140"  />
@@ -93,6 +94,13 @@
 	<mx:HBox width="100%" horizontalAlign="center">
 		<mx:Label  text="Show Time: " width="140" />
 		<mx:CheckBox id="timeOpt" width="100" />
+	</mx:HBox>
+	<mx:HBox width="100%" horizontalAlign="center">
+		<mx:Label  text="Automatic Updates: " width="140" />
+		<mx:CheckBox id="autoUpdate" width="100" selected="{Boolean(parentApplication.autoUpdate)}" />
+	</mx:HBox>
+	<mx:HBox width="100%" horizontalAlign="center">
+		<mx:LinkButton  click="linkbutton1_clickHandler(event)" label="Click Here to check the readme file." styleName="headerButtons" />
 	</mx:HBox>
 		<mx:Spacer />			
 		<mx:Spacer />

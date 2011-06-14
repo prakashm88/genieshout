@@ -4,81 +4,272 @@
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
 					   width="550" height="350"
 					   initialize="init()"
-					   xmlns:chat="com.itechgenie.chat.*" 
+					   xmlns:chat="com.itechgenie.chat.pages.*" 
 					   creationComplete="windowedapplication1_creationCompleteHandler(event)"
 					   >
-	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	
+	<fx:Declarations>		
+		<mx:HTTPService id="groupUpdater" method="GET" resultFormat="text"
+						showBusyCursor="true" />
 	</fx:Declarations>
 	
-	<fx:Style source="/assets/css/genieshout.css"/>	
+	<fx:Style source="/assets/css/genieshout.css"/>
+	
 	<fx:Script>
 		<![CDATA[
+			import com.itechgenie.chat.vo.GenieShoutVO;
+			import com.itechgenie.chat.util.Utility;
+			import com.itechgenie.chat.dao.GenieShoutDAO;
 			import com.itechgenie.chat.pages.AboutPage;
 			import com.itechgenie.chat.pages.SettingsPage;
 			import com.itechgenie.chat.versioning.AutoVersion;
+			import com.itechgenie.chat.versioning.GenieUpdater;
 			
 			import mx.collections.ArrayCollection;
+			import mx.collections.XMLListCollection;
 			import mx.controls.Alert;
+			import mx.core.mx_internal;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
 			import spark.events.IndexChangeEvent;
-
+			
 			[Bindable]
-			public var version:AutoVersion = new AutoVersion(1,0,5);
+			public var version:AutoVersion = new AutoVersion(1,0,9);
+			
+			[Bindable]
+			public var autoUpdate:int = 1; 
 			
 			[Bindable]
 			public var groupName:ArrayCollection;
 			
-			[Bindable]
-			private var ipAddress:String ;
+			private var _serverIP:String = null ;
 			
+			 [Bindable]
+			public var showMachineID:Boolean = true ;
 			[Bindable]
-			public var serverIP:String = "172.24.30.158" ;
-			
-			[Bindable]
-			public var showUser:Boolean = true ;
-			[Bindable]
-			public var showTime:Boolean = true ;
+			public var showTime:Boolean = true ; 
 			
 			[Bindable]
 			public var groupNameValue:String ;
+			[Bindable]
+			private var ipAddress:String ;			
+			
+			[Bindable]
+			private var gpLoader:URLLoader;
+			[Bindable]
+			private var groupXMLColn:XMLListCollection;
+			private var myXml:XML;
+			
+			[Bindable]
+			public var machineID: String ;
+			
+			[Bindable]
+			public var genieShoutDAO:GenieShoutDAO = new GenieShoutDAO();
+			
+			[Bindable]
+			public var genieShoutDTO:GenieShoutVO = new GenieShoutVO();
+			
+			public function updateGroupsName(event:Event = null):void
+			{
+				trace("serverIpChange event: " + serverIP); 
+				genieShoutDAO.insertOrUpdateIP(serverIP, autoUpdate) ;
+				var netInterfaces:* = NetworkInfo.networkInfo.findInterfaces();			
+				var addresses:* = netInterfaces[0].addresses;				
+				ipAddress = addresses[0].address;				
+				var verNo:String = NativeApplication.nativeApplication.runtimeVersion ;
+				var requestedURL:String = "http://"+ serverIP +"/genieshout/getGroupNames.php?ipAddress=" + ipAddress + "&versionNo=" + verNo;
+				var gpReq:URLRequest = new URLRequest(requestedURL);				
+				gpLoader = new URLLoader();
+				gpLoader.addEventListener(Event.COMPLETE, fillGroupNames);
+				gpLoader.addEventListener(IOErrorEvent.IO_ERROR, reportError );
+				cursorManager.setBusyCursor();
+				gpLoader.load(gpReq);					
+			}
+			
+			public function get serverIP():String
+			{
+				trace("Reading IP Address: "+ _serverIP) ;
+				return _serverIP;
+			}			
+			
+			[Bindable]
+			public function set serverIP(value:String):void
+			{
+				trace("IP Address updated: " + value) ;
+				_serverIP = value;
+				genieShoutDTO.serverIP = value;
+				this.dispatchEvent(new Event("serverIpChange"));
+			}
 			
 			protected function button1_clickHandler(event:Event):void
-			{				
-				if(userName.text != "" )
+			{	
+				var bool:Boolean = checkServerIP() ; 
+				trace("init method return val: " + bool) ;
+				if(bool)
 				{
-					if(groupCombo.selectedIndex != 0)
+					if(userName.text != "" )
 					{
-						trace(groupCombo.selectedItem) ;
-						trace(userName.text );
-						screenStack.selectedIndex=1;
+						if(groupCombo.selectedIndex != 0)
+						{
+							trace(groupCombo.selectedItem) ;
+							trace(userName.text );							
+							//genieShoutDTO = new GenieShoutVO();
+							if(genieShoutDTO.userName != userName.text)
+							{
+								var genieObj:GenieShoutVO = genieShoutDAO.getUserByName(userName.text,machineID, ipAddress, serverIP);
+								if(genieObj==null)
+								{
+									genieShoutDTO.id = 0;								
+									genieShoutDTO.showTime = "true";
+									genieShoutDTO.showMachineID = "true" ;
+									genieShoutDTO.textColor = "000000" ;
+								}
+								else
+								{
+									genieShoutDTO.id = genieObj.id;										
+									genieShoutDTO.showTime = genieObj.showTime ;
+									genieShoutDTO.showMachineID = genieObj.showMachineID ;
+									genieShoutDTO.textColor = genieObj.textColor ; 					
+								}
+							}
+							
+							trace("TRace of id: "+genieShoutDTO.id);
+							genieShoutDTO.userName = userName.text ;
+							genieShoutDTO.groupName = groupNameValue ;
+							genieShoutDTO.remLogin = rememberLogin.selected.toString();
+							genieShoutDTO.serverIP = serverIP ;
+							genieShoutDTO.machineIP = ipAddress ;
+							genieShoutDTO.machineID = machineID ;
+							
+							genieShoutDAO.insertOrUpdateData(genieShoutDTO);							
+							screenStack.selectedIndex=1;
+						}
+						else
+						{
+							Alert.show("Select Group Name.");
+						}
 					}
 					else
 					{
-						Alert.show("Select Group Name.");
+						Alert.show("Enter User Name.");
 					}
 				}
-				else
-				{
-					Alert.show("Enter User Name.");
+			}
+			
+			private function alertListener(eventObj:CloseEvent):void {
+				// Check to see if the OK button was pressed.
+				if (eventObj.detail==Alert.OK) {
+					var settingsPopUP:SettingsPage=SettingsPage(PopUpManager.createPopUp(this, SettingsPage, true));
+					PopUpManager.centerPopUp(settingsPopUP);
 				}
 			}
-			public function init():void
-			{			
-				groupName = new ArrayCollection(
-					[  "Select",
-						"Kumaran", 
-						"Sample"
-					]);
-				
-				var netInterfaces = NetworkInfo.networkInfo.findInterfaces();			
-				var addresses = netInterfaces[0].addresses;				
-				ipAddress = addresses[0].address;				
-				trace(ipAddress);				
-				groupNameValue = "Kumaran" ;				
 			
+			private function checkServerIP():Boolean
+			{	
+				var tempOjb:Object = genieShoutDAO.getIPData() ; 
+				if(tempOjb == null) serverIP = null ;
+				else
+				{
+					serverIP = tempOjb.ipAddress;
+					autoUpdate = tempOjb.autoUpdate;
+				}
+				if( serverIP == null )
+				{
+					var presentation:File = File.applicationDirectory.resolvePath("assets/html/readme.html");
+					var alertText:String = "<a href='" + presentation.nativePath + "'>Kindly fill in the server IP in the Setting page. Click here to view the Readme file.</a>" ;					
+					var alert:Alert = Alert.show(alertText, "Alert !!",
+						Alert.OK | Alert.CANCEL, this,
+						alertListener, null, Alert.OK);
+					alert.mx_internal::alertForm.mx_internal::textField.htmlText = alertText;
+					return false;
+				}
+				else
+				{	if(autoUpdate) GenieUpdater.checkForUpdate() ;
+					updateGroupsName();					
+					return true ;
+				}				
+			}
+			
+			private function checkPreviousSettings():void
+			{						
+				/* 	genieDAO.genieShoutVO = genieDTO ;
+				genieDAO.checkDBExist() ;
+				genieDAO.insertDataToDB() ;	 				
+				genieShoutDAO.createShoutDB();	*/				
+				genieShoutDTO = genieShoutDAO.getLastLoggedUser(machineID, ipAddress, serverIP );
+				//genieShoutDAO.insertData(genieShoutDTO);
+				if("true" == genieShoutDTO.remLogin)
+				{
+					userName.text = genieShoutDTO.userName  ;
+					groupNameValue = genieShoutDTO.groupName ;
+					
+					var gpIndex:int = 0;
+					for each(var gpObj:Object in groupName)
+					{
+						if(gpObj.name == genieShoutDTO.groupName)
+						{
+							break;
+						}
+						gpIndex++; 
+					}					
+					groupCombo.selectedIndex = gpIndex ;					
+				}
+			/* 	else
+				{
+					genieShoutDTO.showTime = "true" ;
+					genieShoutDTO.showMachineID = "true" ;					
+				} */
+			}
+			
+			public function init():void
+			{	
+				this.addEventListener("serverIpChange", updateGroupsName);					
+				machineID =  File.userDirectory.name ;
+				genieShoutDAO.createIPDB() ;
+				genieShoutDAO.createShoutDB() ;
+			}
+			
+			protected function reportError(event:Event):void
+			{				
+				cursorManager.removeBusyCursor();
+				Alert.show("Exception occured while fetching Group list. Please contact administrator.");
+			}
+			
+			private function fillGroupNames(e:Event):void
+			{
+				groupName = new ArrayCollection();
+				if(gpLoader.data != null )
+				{
+					trace("XML content: " +gpLoader.data.toString());				
+					myXml = new XML(gpLoader.data.toString());
+					var tempGroupProvider:XMLListCollection = new XMLListCollection(myXml..group);
+					trace("Temp Chat: " + tempGroupProvider.toString()) ;
+					
+					if(myXml.toString() == 0)
+					{
+						trace("No new Data.") ;					
+					}
+					else
+					{						
+						var newObj:Object = new Object();						
+						newObj.name = "select";
+						newObj.label = "Select";
+						groupName.addItemAt(newObj,0);
+						for (var itr:* in tempGroupProvider)
+						{
+							newObj = new Object();
+							newObj.name = tempGroupProvider.getItemAt(itr).name ;
+							newObj.label = tempGroupProvider.getItemAt(itr).label ;
+							groupName.addItem(newObj);
+						}						
+						userName.enabled = true ;
+						groupCombo.selectedIndex = 0;
+						groupCombo.enabled = true ;
+					}				
+				}
+				checkPreviousSettings();
+				cursorManager.removeBusyCursor();				
 			}
 			
 			private function writeVersionNumber():void
@@ -119,12 +310,13 @@
 					button2_clickHandler(null) ;	
 				}
 			}
-
+			
 			protected function groupCombo_changeHandler(event:IndexChangeEvent):void
 			{
-				groupNameValue = groupCombo.selectedItem ;
+				groupNameValue = groupCombo.selectedItem.name.toString() ;
+				trace( "groupNameValue : " + groupNameValue );
 			}
-
+			 
 			protected function button2_clickHandler(event:MouseEvent):void
 			{
 				this.close() ;
@@ -137,7 +329,7 @@
 			
 			private var trayIcon:BitmapData; 
 			import mx.events.CloseEvent;
-
+			
 			public function loadTrayIcon():void
 			{
 				var loader:Loader = new Loader();
@@ -198,29 +390,55 @@
 			}
 			
 			protected function windowedapplication1_creationCompleteHandler(event:FlexEvent):void
-			{
+			{				
 				writeVersionNumber();
-				loadTrayIcon();	
+				loadTrayIcon();		
+				checkServerIP();				
 				//	this.addEventListener(Event.CLOSING, minToTray);				
 				joinChat.addEventListener(KeyboardEvent.KEY_DOWN, joinChatEnterCheck );
-				joinChat.addEventListener(KeyboardEvent.KEY_DOWN, exitChatEnterCheck );				
+				joinChat.addEventListener(KeyboardEvent.KEY_DOWN, exitChatEnterCheck );					
 			}
-
+			
 			protected function vbox1_showHandler(event:FlexEvent):void
 			{
-				userName.text = "" ;
+				if("true" == genieShoutDTO.remLogin)
+				{
+					groupNameValue = genieShoutDTO.groupName ;				
+					var gpIndex:int = 0;
+					for each(var gpObj:Object in groupName)
+					{
+						if(gpObj.name == genieShoutDTO.groupName)
+						{
+							break;
+						}
+						gpIndex++; 
+					}					
+					groupCombo.selectedIndex = gpIndex ; 
+				}
+				else
+				{
+					userName.text = "" ;
+					groupCombo.selectedIndex = 0 ;
+					rememberLogin.selected = false;
+				}
 			}
-
+			
 			protected function settingsButton_clickHandler(event:MouseEvent):void
 			{
 				var settingsPopUP:SettingsPage=SettingsPage(PopUpManager.createPopUp(this, SettingsPage, true));
 				PopUpManager.centerPopUp(settingsPopUP);
 			}
-
+			
 			protected function aboutButton_clickHandler(event:MouseEvent):void
 			{
 				var aboutPopUP:AboutPage=AboutPage(PopUpManager.createPopUp(this, AboutPage, true));
 				PopUpManager.centerPopUp(aboutPopUP);
+			}
+		
+			protected function rememberLogin_changeHandler(event:Event):void
+			{				
+				if(rememberLogin.selected) genieShoutDTO.remLogin = "true" ;
+				else genieShoutDTO.remLogin = "false" ; 
 			}
 
 		]]>
@@ -291,13 +509,17 @@
 				<mx:VBox width="100%" height="100%" label="Default Page" minHeight="0" 
 						 horizontalAlign="center" verticalAlign="middle" show="vbox1_showHandler(event)" >			
 					<mx:HBox width="100%" horizontalAlign="center">
-						<mx:Label  text="User Name: " width="100" />
-						<mx:TextInput id="userName" width="150" enter="button1_clickHandler(event)" restrict="A-Z0-9a-z" />
+						<mx:Label  text="User Name: " width="120" />
+						<mx:TextInput id="userName" width="150" enabled="false" enter="button1_clickHandler(event)" restrict="A-Z0-9a-z" />
 					</mx:HBox>
 					<mx:HBox width="100%" horizontalAlign="center">
-						<mx:Label  text="Group Name: " width="100" />
-						<s:ComboBox dataProvider="{groupName}" id="groupCombo" 
-									enabled="false" selectedIndex="1" width="150" change="groupCombo_changeHandler(event)" />
+						<mx:Label  text="Group Name: " width="120" />
+						<s:DropDownList dataProvider="{groupName}" id="groupCombo" labelField="label"
+									enabled="false" width="150" change="groupCombo_changeHandler(event)" />
+					</mx:HBox>
+					<mx:HBox width="100%" horizontalAlign="center">
+						<mx:Label  text="Remember Login: " width="120" />
+						<s:CheckBox selected="{genieShoutDTO.remLogin}" width="150" id="rememberLogin" change="rememberLogin_changeHandler(event)" />
 					</mx:HBox>
 					<mx:Spacer /><mx:Spacer />
 					<mx:HBox>
@@ -308,9 +530,9 @@
 				
 				<!--	<chat:AdvancedChatWindow  height="100%" id="chatWindow"  width="100%" />	-->		
 				<chat:ChatWindow height="100%" id="chatWindow" userName="{userName.text}" 
-								 groupName="{groupCombo.selectedItem}" ipAddress="{ipAddress}" width="100%" minHeight="0" />	
+								 groupName="{groupNameValue}" ipAddress="{ipAddress}" width="100%" minHeight="0" />	
 				
 			</mx:ViewStack>
 		</mx:VBox>	
-		</mx:Canvas>
+	</mx:Canvas>
 </s:WindowedApplication>
