@@ -16,11 +16,11 @@ if($versionNo != null && $versionNo != "")
 {
 if($groupName==null || $groupName=="")
 {
-$myFile = "generalGroup.txt";
+$myFile = "generalGroup.itg";
 }
 else
 {
-$myFile = $groupName .".txt" ;
+$myFile = $groupName .".itg" ;
 }
 
 fwrite($log, "file name : " + $myFile . "\n" ) ;

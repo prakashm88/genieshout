@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<update xmlns="http://ns.adobe.com/air/framework/update/description/1.0">
+<version>v1.0.09 r145</version>
+<url>http://172.24.30.158/genieshout/GenieShout1.0.09 r145.air</url>
+<description><![CDATA[
+Version v1.0.09 r145 Changes
+
+1. Group name updation and addition, in server side and client side.
+2. Auto updation settings.
+3. Saving and fetching user detials.
+4. Local data maintenace with SQLLite.
+5. Read me files added.
+6. Code Cleanup
+]]></description>
+</update>

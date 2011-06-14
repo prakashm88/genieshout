@@ -11,6 +11,9 @@
 				>
 	<fx:Script>
 		<![CDATA[
+			import com.itechgenie.chat.util.Utility;
+			import com.itechgenie.chat.versioning.GenieUpdater;
+			
 			import flash.net.navigateToURL;
 			
 			import mx.events.CloseEvent;
@@ -25,7 +28,6 @@
 			
 			protected function titlewindow1_closeHandler(event:Event):void
 			{
-				updateStatus.visible = false;
 				PopUpManager.removePopUp(this);
 			}
 
@@ -42,7 +44,7 @@
 
 			protected function checkUpdate_clickHandler(event:MouseEvent):void
 			{
-				updateStatus.visible = true ;
+				GenieUpdater.checkForUpdate() ;
 			}
 			
 			protected function titlewindow1_creationCompleteHandler(event:FlexEvent):void
@@ -51,13 +53,7 @@
 				trace("versionString: " + versionString) ;
 				siteURL = "<a href='http://itechgenie.com/myblog/genieshout' >Home Page</a>" ;
 			}
-
-			protected function openHomePage(event:MouseEvent):void
-			{
-				var urlRequest:URLRequest =  new URLRequest("http://itechgenie.com/myblog/genieshout") ;
-				navigateToURL(urlRequest);
-			}
-
+			
 		]]>
 	</fx:Script>
 	<fx:Declarations>
@@ -67,15 +63,15 @@
 		<mx:VBox width="100%" height="100%" verticalAlign="top" horizontalAlign="center">			
 			<mx:Label text="GenieShout" styleName="projectTitle" />
 			<mx:Label text="{versionString}" styleName="projectVersion" />
-			<mx:LinkButton  click="openHomePage(event)" label="Visit Home Page" styleName="headerButtons" />	
+			<mx:LinkButton  click="Utility.goToHomePage(event)" label="Visit Home Page" styleName="headerButtons" />	
 			<mx:Image maintainAspectRatio="true"
 					  smoothBitmapContent="true"
 					  source="@Embed(source='assets/icon_128.png')"
 						width="75"
-					  	height="75" click="openHomePage(event)"					 
+					  	height="75" click="Utility.goToHomePage(event)"					 
 					 />
 			<mx:Spacer/>
-			<mx:Label id="updateStatus" text="GenieShout installed in upto date." visible="false" />
+			<mx:LinkButton  click="Utility.goToHomePage(event)" label="View ReadMe" styleName="headerButtons" />	
 			<mx:HBox width="100%" horizontalAlign="center">
 			<mx:Button label="Check For Updates" id="checkUpdate" click="checkUpdate_clickHandler(event)" />
 			<mx:Button label="Close" id="closeAbout" click="titlewindow1_closeHandler(event)" />
