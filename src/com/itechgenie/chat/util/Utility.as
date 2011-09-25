@@ -4,6 +4,7 @@ package com.itechgenie.chat.util
 	
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.filesystem.File;
 	import flash.net.URLRequest;
 	import flash.net.navigateToURL;
 	
@@ -38,6 +39,14 @@ package com.itechgenie.chat.util
 		public static function goToHomePage(event:Event):void
 		{
 			var urlRequest:URLRequest =  new URLRequest("http://itechgenie.com/myblog/genieshout") ;
+			navigateToURL(urlRequest);
+		}
+		
+		public static function viewReadme(event:MouseEvent):void
+		{
+			var presentation:File = File.applicationDirectory.resolvePath("assets/html/readme.html");
+			trace(presentation.nativePath + " - " + presentation.url + " - " ) ;
+			var urlRequest:URLRequest =  new URLRequest(presentation.nativePath) ;
 			navigateToURL(urlRequest);
 		}
 				

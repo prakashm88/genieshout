@@ -113,6 +113,7 @@
 				}				
 				}
 				cursorManager.removeBusyCursor();
+				interval = setInterval(refreshData, 5000); 
 			}
 			
 			protected function button1_clickHandler(event:Event, text:String):void

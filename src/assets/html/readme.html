@@ -3,17 +3,41 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>GenieShout - Readme</title>
+<style type="text/css">
+.bodyStyle {font-family: Verdana, Arial, Helvetica, sans-serif; font-size:13px; color: #333333; }
+</style>
 </head>
-<body>
-<h1>Version v1.0.09 r145 Changes</h1>
-
-1. Group name updation and addition, in server side and client side.
-2. Auto updation settings.
-3. Saving and fetching user detials.
-4. Local data maintenace with SQLLite.
-5. Read me files added.
-6. Chat text field updated to give copy finctionality
-7. Code Cleanup
-
+<body class="bodyStyle">
+<h1 align="center">GenieShout</h1>
+<p> GenieShout is a Shout box to make open chat between a closed group. Primarily configured to get the details from a PHP web server and can be used inside a closed LAN. </p>
+<h2>Downloads</h2>
+<p>Download latest version of GenieShout from <a href="http://code.google.com/p/genieshout/downloads/list">Google Code</a>.</p>
+<h2>Installation</h2>
+<h3>Prerequisites</h3>
+<p>Adobe AIR 2.5 or greater is needed to install the GenieShout. You can get the Adobe AIR from <a href="http://get.adobe.com/air/">Here</a>.</p>
+<h3>Steps - Server Side</h3>
+<ul>
+  <li>Download and install the SSICode.exe from the downloads section.</li>
+  <li>Copy the files in the SSICode folder named "genieshout" to a Web server, which supports the PHP.</li>
+  <li>By default the Group name will be "general". To add a new group add a entry to "groupNames.itg" as new line in the format "GroupID##!##GroupName". The group name will ne listed automatically in the login window of the applicaiton on successful server configuration.</li>
+  <li>Logs and other files will be automatically updated in the server context.</li>
+</ul>
+<h3>Steps - Client Side</h3>
+<ul>
+  <li>Install the GenieShout.air file downloaded.</li>
+  <li>Keyin the Server IP address in the first configuration window.</li>
+  <li>On successful configuration of the server the default "General" group name will be shown. If the group names are updated in the server, it will be updated in login page.</li>
+</ul>
+<h2>Version History - GenieShout Version</h2>
+<h3>v1.0.09 r145 Changes</h3>
+<ul>
+  <li>Group name updation and addition, in server side and client side.</li>
+  <li> Auto updation settings.</li>
+  <li> Saving and fetching user detials.</li>
+  <li> Local data maintenace with SQLLite.</li>
+  <li> Read me files added.</li>
+  <li> Chat text field updated to give copy finctionality</li>
+  <li> Code Cleanup</li>
+</ul>
 </body>
 </html>

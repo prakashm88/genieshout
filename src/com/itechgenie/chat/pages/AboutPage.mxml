@@ -71,7 +71,7 @@
 					  	height="75" click="Utility.goToHomePage(event)"					 
 					 />
 			<mx:Spacer/>
-			<mx:LinkButton  click="Utility.goToHomePage(event)" label="View ReadMe" styleName="headerButtons" />	
+			<mx:LinkButton  click="Utility.viewReadme(event)" label="View Readme" styleName="headerButtons" />	
 			<mx:HBox width="100%" horizontalAlign="center">
 			<mx:Button label="Check For Updates" id="checkUpdate" click="checkUpdate_clickHandler(event)" />
 			<mx:Button label="Close" id="closeAbout" click="titlewindow1_closeHandler(event)" />
