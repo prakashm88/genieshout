@@ -1,5 +1,6 @@
 package com.itechgenie.chat.vo
 {	
+	[Bindable]
 	public class GenieShoutVO
 	{
 		private var  _id:int;
@@ -66,25 +67,21 @@ package com.itechgenie.chat.vo
 		
 		public function get showTime():String
 		{
-			trace("showTime - get") ;
 			return _showTime;
 		}
 		
 		public function set showTime(value:String):void
 		{
-			trace("showTime - set") ;
 			_showTime = value;
 		}
 		
 		public function get showMachineID():String
 		{
-			trace("showId - get") ;
 			return _showMachineID;
 		}
 		
 		public function set showMachineID(value:String):void
 		{
-			trace("showId - set") ;
 			_showMachineID = value;
 		}
 		

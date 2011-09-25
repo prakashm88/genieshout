@@ -14,7 +14,8 @@ package com.itechgenie.chat.versioning
 		public static function checkForUpdate():void {
 			trace("Inside Update") ;
 			//	setApplicationVersion(); // Find the current version so we can show it below			
-			appUpdater.updateURL = "http://genieshout.googlecode.com/files/update.xml"; // Server-side XML file describing update
+			//appUpdater.updateURL = "http://genieshout.googlecode.com/files/update.xml"; // Server-side XML file describing update
+			appUpdater.updateURL = "http://genieshout.googlecode.com/svn/trunk/SSIcode/update.xml";
 			appUpdater.isCheckForUpdateVisible = false; // We won't ask permission to check for an update
 			appUpdater.addEventListener(UpdateEvent.INITIALIZED, onUpdate); // Once initialized, run onUpdate
 			appUpdater.addEventListener(ErrorEvent.ERROR, onError); // If something goes wrong, run onError

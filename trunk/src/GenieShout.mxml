@@ -519,7 +519,7 @@
 					</mx:HBox>
 					<mx:HBox width="100%" horizontalAlign="center">
 						<mx:Label  text="Remember Login: " width="120" />
-						<s:CheckBox selected="{genieShoutDTO.remLogin}" width="150" id="rememberLogin" change="rememberLogin_changeHandler(event)" />
+						<s:CheckBox selected="{this.genieShoutDTO.remLogin}" width="150" id="rememberLogin" change="rememberLogin_changeHandler(event)" />
 					</mx:HBox>
 					<mx:Spacer /><mx:Spacer />
 					<mx:HBox>
@@ -528,7 +528,6 @@
 					</mx:HBox>
 				</mx:VBox>
 				
-				<!--	<chat:AdvancedChatWindow  height="100%" id="chatWindow"  width="100%" />	-->		
 				<chat:ChatWindow height="100%" id="chatWindow" userName="{userName.text}" 
 								 groupName="{groupNameValue}" ipAddress="{ipAddress}" width="100%" minHeight="0" />	
 				
