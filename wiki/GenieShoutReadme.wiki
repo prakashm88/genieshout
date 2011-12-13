@@ -3,7 +3,7 @@
 
 = Introduction =
 
-GenieShout is a Shout box to make open chat between a closed group. Primarily configured to get the details from a PHP web server and can be used inside a closed LAN. 
+GenieShout is a Shout box to make open chat between a closed group. Its primarily configured to get the details from a PHP web server and can be used inside a closed LAN, developed by http://itechgenie.com. 
 
 
 = Details =
