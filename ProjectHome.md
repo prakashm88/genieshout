@@ -1,0 +1,1 @@
+Shout box to make open chat between a closed group. Primarily configured to get the details from a PHP web server and can be used inside a closed LAN.
